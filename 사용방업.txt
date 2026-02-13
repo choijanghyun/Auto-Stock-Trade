@@ -1,0 +1,76 @@
+사용 방법
+.env.example을 .env로 복사하고 KIS API 키 설정
+pip install -r requirements.txt 실행
+Redis 서버 시작
+python -m kats.main 으로 시스템 기동
+
+
+
+프로젝트 구조
+kats/
+├── main.py                    # 엔트리포인트 + APScheduler 스케줄러
+├── config/                    # 환경 설정 및 상수
+│   ├── settings.py            # .env 기반 설정 (API 키, 리스크 파라미터)
+│   └── constants.py           # 상수 정의 (시간대, 전략 코드, 등급 기준)
+├── auth/                      # KIS API 인증
+│   ├── token_manager.py       # 토큰 자동 발급/갱신/캐싱
+│   └── hashkey_manager.py     # 해시키 생성
+├── api/                       # API 통신
+│   ├── kis_rest_client.py     # REST API 래퍼 (주문/잔고 전용)
+│   ├── kis_websocket_client.py # WebSocket 클라이언트 (실시간 시세)
+│   └── rate_limiter.py        # Token Bucket 기반 초당 18회 제한
+├── market/                    # 시장 데이터
+│   ├── realtime_cache.py      # WebSocket → In-Memory 캐시
+│   ├── vi_monitor.py          # 변동성 완화장치(VI) 감지
+│   ├── data_hub.py            # 통합 데이터 허브
+│   ├── stock_screener.py      # Minervini Trend Template + CAN SLIM 스캐너
+│   ├── indicator_calculator.py # 기술적 지표 (MA, RSI, VWAP, BB, ATR, MACD)
+│   └── sector_analyzer.py     # 섹터 강약 분석
+├── strategy/                  # 12개 전략 엔진
+│   ├── base_strategy.py       # 추상 베이스 클래스 + TradeSignal
+│   ├── sepa_momentum.py       # S1: SEPA 모멘텀 돌파 (Minervini)
+│   ├── gap_and_go.py          # S2: Gap & Go (Cameron/Aziz)
+│   ├── canslim_breakout.py    # S3: CAN SLIM 돌파 (O'Neil)
+│   ├── triple_screen.py       # S4: Triple Screen (Elder)
+│   ├── vwap_bounce.py         # S5: VWAP 바운스 (Carter/Aziz)
+│   ├── dead_cat_bounce.py     # B1: 데드캣 바운스 (하락장)
+│   ├── inverse_etf.py         # B2: 인버스 ETF (하락장)
+│   ├── range_trading.py       # B3: 박스권 매매 (하락장)
+│   ├── oversold_reversal.py   # B4: 과매도 역발상 (하락장)
+│   ├── volatility_breakout.py # VB: 변동성 돌파 (래리 윌리엄스)
+│   ├── grid_trading.py        # GR: 그리드 매매
+│   ├── dividend_switching.py  # DS: 배당주 스위칭
+│   └── strategy_selector.py   # 장세별 전략 자동 선택기
+├── risk/                      # 9단계 리스크 관리
+│   ├── risk_manager.py        # 통합 9단계 리스크 파이프라인
+│   ├── position_sizer.py      # Van Tharp R배수 기반 포지션 사이징
+│   ├── trailing_stop.py       # 다중 방식 트레일링 스탑
+│   ├── daily_kill_switch.py   # 일일 손실 차단 (Cameron)
+│   ├── drawdown_protocol.py   # 5단계 드로우다운 대응
+│   ├── grade_allocator.py     # 등급별 비중 배분
+│   ├── global_position_lock.py # 전략 중복 종목 비중 잠금 (v1.1)
+│   └── margin_guard.py        # 미수/신용 차단 (v1.1)
+├── order/                     # 주문 관리
+│   ├── order_manager.py       # 주문 통합 관리
+│   ├── order_state_machine.py # 주문 상태 전이 (v1.1)
+│   ├── order_tracker.py       # 미체결 추적/자동 취소 (v1.1)
+│   ├── paper_trading.py       # 호가 잔량 기반 가상 매매 (v1.1)
+│   └── pyramid_manager.py     # 피라미딩 관리
+├── journal/                   # 매매 일지
+│   ├── trade_journal.py       # 자동 매매일지 (Steenbarger)
+│   ├── performance_analyzer.py # SQN, R배수 분석
+│   └── review_generator.py    # 일/주/월간 리뷰 자동 생성
+├── ai/                        # AI 자연어 처리
+│   ├── mcp_handler.py         # MCP 명령 + Human-in-the-loop (v1.1)
+│   └── nlp_parser.py          # 자연어 → 매매 명령 변환
+├── notification/              # 알림
+│   ├── notifier.py            # Slack/Telegram 통합 알림
+│   └── approval_gateway.py    # 승인 게이트웨이 (v1.1)
+├── database/                  # 데이터베이스
+│   ├── models.py              # SQLAlchemy ORM (10개 테이블)
+│   ├── repository.py          # 데이터 액세스 레이어
+│   └── redis_buffer.py        # Redis 실시간 버퍼 (v1.1)
+└── utils/                     # 유틸리티
+    ├── logger.py              # structlog 구조화 로깅
+    ├── event_calendar.py      # 특수 이벤트 캘린더
+    └── market_regime.py       # 장세 판단
