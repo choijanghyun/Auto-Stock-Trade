@@ -1,12 +1,47 @@
-사용 방법
+# 사용 방법
 .env.example을 .env로 복사하고 KIS API 키 설정
 pip install -r requirements.txt 실행
 Redis 서버 시작
 python -m kats.main 으로 시스템 기동
 
+# 운영 스크립트 구성
+Shell 스크립트 (scripts/)
+스크립트	용도	주요 옵션
+start.sh	시스템 기동	--live (실전모드), --skip-redis
+stop.sh	시스템 중지	--all (Redis 포함), --force (강제종료)
+restart.sh	재시작	--live, --force
+status.sh	상태 대시보드	--json (JSON 출력)
+Python CLI (scripts/kats_ctl.py)
+통합 관리 도구로 모든 작업을 한 곳에서 수행:
+
+python scripts/kats_ctl.py start          # 모의매매 모드 시작
+python scripts/kats_ctl.py start --live   # 실전매매 모드 시작
+python scripts/kats_ctl.py stop           # 중지 (Redis 유지)
+python scripts/kats_ctl.py stop --all     # 전체 중지
+python scripts/kats_ctl.py restart        # 재시작
+python scripts/kats_ctl.py status         # 상태 대시보드
+python scripts/kats_ctl.py logs -f        # 실시간 로그 추적
+python scripts/kats_ctl.py health         # 상세 헬스 체크
+python scripts/kats_ctl.py db-init        # DB 초기화
+python scripts/kats_ctl.py db-stats       # DB 테이블 통계
+python scripts/kats_ctl.py config         # 전체 설정 보기
+python scripts/kats_ctl.py redis-flush    # Redis → DB 수동 플러시
+
+start.sh 실행 흐름
+1. .env 파일 및 API 키 확인
+2. Python 가상환경 활성화 + 패키지 확인
+3. Redis 서버 시작 (redis.conf 자동 생성)
+4. 데이터베이스 초기화 (테이블 자동 생성)
+5. 프리플라이트 체크 (Redis/DB/API키/모듈 검증)
+6. KATS 백그라운드 기동 (nohup + PID 파일)
+
+stop.sh 실행 흐름
+1. KATS 프로세스 Graceful Shutdown (SIGTERM → 15초 대기 → SIGKILL)
+2. 잔여 자식 프로세스 정리
+3. Redis 중지 (--all 옵션 시, BGSAVE 후 shutdown)
 
 
-프로젝트 구조
+#프로젝트 구조
 kats/
 ├── main.py                    # 엔트리포인트 + APScheduler 스케줄러
 ├── config/                    # 환경 설정 및 상수
