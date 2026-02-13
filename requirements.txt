@@ -1,0 +1,12 @@
+aiohttp>=3.9.0          # 비동기 HTTP 클라이언트
+websockets>=12.0        # WebSocket 클라이언트
+sqlalchemy>=2.0         # ORM
+asyncpg>=0.29           # PostgreSQL 비동기 드라이버
+aiosqlite>=0.20         # SQLite 비동기 드라이버
+redis[hiredis]>=5.0     # Redis In-Memory 캐시/버퍼
+apscheduler>=3.10       # 스케줄러
+python-dotenv>=1.0      # 환경 변수
+numpy>=1.26             # 수치 계산 (지표)
+pandas>=2.1             # 데이터 분석
+pydantic>=2.5           # 데이터 검증
+structlog>=23.2         # 구조화 로깅
